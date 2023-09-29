@@ -18,18 +18,7 @@ try:
 except ImportError:
     JWK_CLIENT_AVAILABLE = False
 
-ALLOWED_ALGORITHMS = {
-    "HS256",
-    "HS384",
-    "HS512",
-    "RS256",
-    "RS384",
-    "RS512",
-    "ES256",
-    "ES384",
-    "ES512",
-}
-
+ALLOWED_ALGORITHMS = {alg for alg in algorithms.get_default_algorithms().keys() if alg != 'none'}
 
 class TokenBackend:
     def __init__(
@@ -64,16 +53,16 @@ class TokenBackend:
         Ensure that the nominated algorithm is recognized, and that cryptography is installed for those
         algorithms that require it
         """
-        if algorithm not in ALLOWED_ALGORITHMS:
-            raise TokenBackendError(
-                format_lazy(_("Unrecognized algorithm type '{}'"), algorithm)
-            )
-
         if algorithm in algorithms.requires_cryptography and not algorithms.has_crypto:
             raise TokenBackendError(
                 format_lazy(
                     _("You must have cryptography installed to use {}."), algorithm
                 )
+            )
+        
+        if algorithm not in ALLOWED_ALGORITHMS:
+            raise TokenBackendError(
+                format_lazy(_("Unrecognized algorithm type '{}'"), algorithm)
             )
 
     def get_leeway(self) -> timedelta:
